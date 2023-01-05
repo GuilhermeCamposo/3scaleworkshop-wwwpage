@@ -11,7 +11,7 @@
     <link href="css/style.css" rel="stylesheet">
 
     <!-- Keycloak Adapter Start-->
-
+    <script src="ENVIRONMENT.KEYCLOAK_URL/auth/js/keycloak.js"></script>
     <!-- Keycloak Adapter End -->
 
     <!--[if lt IE 9]>
@@ -89,7 +89,7 @@
                         <p><div id="mapid"></div></p>
 
                         <!-- Keycloak Login Start -->
-
+                        <p><a id="loginUrl" href="#" class="btn btn-primary">Sign In to access the Location API Service</a></p>
                         <!-- Keycloak Login End -->
 
                         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam congue lectus diam, sit amet cursus massa efficitur sed. Pellentesque efficitur dolor tellus, sit amet vestibulum leo facilisis ac. Nullam vitae fringilla neque. Aliquam erat nunc, vestibulum at suscipit quis, consequat nec lorem. Phasellus porttitor mollis fermentum. Nulla eu eros libero. Donec semper, urna a rhoncus rutrum, nulla neque dignissim neque, nec congue tortor enim id mauris. Nulla euismod dolor lacus, porttitor imperdiet elit ornare nec. In finibus non justo id viverra.</p>
@@ -99,7 +99,7 @@
                     <div class="widget">
                         <h4>OFFICE TYPE</h4>
                         <ul id="typeList" >
-                            <li class="current"><a href='javascript:;' onclick='listLocations(this,"Headquarter")'>Headquarters</a></li>
+                            <li><a href='javascript:;' onclick='listLocations(this,"Headquarter")'>Headquarters</a></li>
                             <li><a href='javascript:;' onclick='listLocations(this,"Regional Office")'>Regional Office</a></li>
                             <li><a href='javascript:;' onclick='listLocations(this,"Local Office")'>Local Office</a></li>
                             <li><a href='javascript:;' onclick='listLocations(this,"ATM")'>ATMs</a></li>
@@ -179,35 +179,74 @@
     <script src="/js/bootstrap.min.js"></script>
 
     <script>
-      $( document ).ready(function() {
-              listLocations(null, "Headquarter");
+      $(document).ready(function() {
+
+              // Keycloak Config Start
+              var keyOptions = {
+                  url: 'ENVIRONMENT.KEYCLOAK_URL/auth',
+                  realm: 'ENVIRONMENT.KEYCLOAK_REALM',
+                  clientId: 'ENVIRONMENT.KEYCLOAK_CLIENT_ID'
+              };
+
+              var keycloak = Keycloak(keyOptions);
+              keycloak.init({ onLoad: 'check-sso' }).then(function (authenticated) {
+                  if (authenticated) {
+                      $("<h4>Welcome " + keycloak.idTokenParsed.preferred_username + "</h4> ").insertBefore($('#mapid'));
+                      $.cookie("workshop-token", keycloak.token);
+                      $('#loginUrl').hide();
+                      $('#mapid').show();
+                  }
+                  else {
+                      $('#mapid').hide();
+                      $('#loginUrl').show();
+                  }
+              }).catch(function (data) {
+                  alert('Failed to initialize keycloak: ' + data);
+              });
+
+              var opts = {
+                  redirectUri: window.location.origin + "/locations.html"
+              };
+
+              var loginUrl = keycloak.createLoginUrl(opts);
+              document.getElementById('loginUrl').href = loginUrl;
+              // Keycloak Config End
         });
 
        function listLocations(el,type){
 
-         clearBox("mapid");
+         var token = $.cookie("workshop-token");
 
-         if(el != null){
-           defineSelection(el);
+         if(token != null){
+           clearBox("mapid");
+
+           if(el != null){
+             defineSelection(el);
+           }
+
+           $( "#mapid" ).each(function( index, element ) {
+             $.ajax({
+                 url: 'ENVIRONMENT.BACKEND_URL' + '?type=' + type,
+                  // Headers Start
+                  headers: {
+                      'Authorization': 'Bearer ' + token
+                  },
+                  // Headers End
+                 dataType: 'json',
+                 success: function(result){
+
+                   $.each(result, function(i, obj) {
+
+                      $( element ).append(
+                          '<div style="width:70%;"> \n ' +
+                            '<h4 style="color:black;">' + obj.name +'</h4> \n ' +
+                            '<p style="color:red;">' + obj.type+'</p> \n ' +
+                          '</div><br> \n ' );
+                    });
+                 }
+             })
+           });
          }
-
-         $( "#mapid" ).each(function( index, element ) {
-           $.ajax({
-               url: 'ENVIRONMENT.BACKEND_URL' + '?type=' + type,
-               dataType: 'json',
-               success: function(result){
-
-                 $.each(result, function(i, obj) {
-
-                    $( element ).append(
-                        '<div style="width:70%;"> \n ' +
-                          '<h4 style="color:black;">' + obj.name +'</h4> \n ' +
-                          '<p style="color:red;">' + obj.type+'</p> \n ' +
-                        '</div><br> \n ' );
-                  });
-               }
-           })
-         });
 
        }
 
