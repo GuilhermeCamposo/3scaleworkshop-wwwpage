@@ -89,7 +89,7 @@
                         <p><div id="mapid"></div></p>
 
                         <!-- Keycloak Login Start -->
-                        <!-- <p><a id="loginUrl" href="#" class="btn btn-primary">Sign In to access the Location API Service</a></p> -->
+                        <p><a id="loginUrl" href="#" class="btn btn-primary">Sign In to access the Location API Service</a></p>
                         <!-- Keycloak Login End -->
 
                         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam congue lectus diam, sit amet cursus massa efficitur sed. Pellentesque efficitur dolor tellus, sit amet vestibulum leo facilisis ac. Nullam vitae fringilla neque. Aliquam erat nunc, vestibulum at suscipit quis, consequat nec lorem. Phasellus porttitor mollis fermentum. Nulla eu eros libero. Donec semper, urna a rhoncus rutrum, nulla neque dignissim neque, nec congue tortor enim id mauris. Nulla euismod dolor lacus, porttitor imperdiet elit ornare nec. In finibus non justo id viverra.</p>
@@ -193,24 +193,24 @@
                   console('authenticated');
                     $("<h4>Welcome " + keycloak.idTokenParsed.preferred_username + "</h4> ").insertBefore($('#mapid'));
                     $.cookie("workshop-token", keycloak.token);
-                    // $('#loginUrl').hide();
+                    $('#loginUrl').hide();
                     $('#mapid').show();
                 }
                 else {
                   console('unknown state');
                     $('#mapid').hide();
-                    // $('#loginUrl').show();
+                    $('#loginUrl').show();
                 }
             }).catch(function () {
                 console('Failed to initialize keycloak');
             });
 
-            // var opts = {
-            //     redirectUri: window.location.origin + "/locations.html"
-            // };
-            //
-            // var loginUrl = keycloak.createLoginUrl(opts);
-            // document.getElementById('loginUrl').href = loginUrl;
+            var opts = {
+                redirectUri: window.location.origin + "/locations.html"
+            };
+
+            var loginUrl = keycloak.createLoginUrl(opts);
+            document.getElementById('loginUrl').href = loginUrl;
             // Keycloak Config End
       });
 
