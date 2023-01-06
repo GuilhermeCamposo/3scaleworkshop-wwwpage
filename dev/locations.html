@@ -178,31 +178,34 @@
     <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script>
+
+    // Keycloak Config Start
+    var keyOptions = {
+        url: 'ENVIRONMENT.KEYCLOAK_URL/auth',
+        realm: 'ENVIRONMENT.KEYCLOAK_REALM',
+        clientId: 'ENVIRONMENT.KEYCLOAK_CLIENT_ID'
+    };
+
+    var keycloak = Keycloak(keyOptions);
+
+
     $(document).ready(function() {
 
-            // Keycloak Config Start
-            var keyOptions = {
-                url: 'ENVIRONMENT.KEYCLOAK_URL/auth',
-                realm: 'ENVIRONMENT.KEYCLOAK_REALM',
-                clientId: 'ENVIRONMENT.KEYCLOAK_CLIENT_ID'
-            };
-
-            var keycloak = Keycloak(keyOptions);
+            console.log('Initializing Keycloak');
             keycloak.init({ onLoad: 'check-sso', enableLogging: true }).then(function (authenticated) {
                 if (authenticated) {
-                  console('authenticated');
-                    $("<h4>Welcome " + keycloak.idTokenParsed.preferred_username + "</h4> ").insertBefore($('#mapid'));
-                    $.cookie("workshop-token", keycloak.token);
+                  console.log('authenticated');
+                    $("<h4>Welcome " + keycloak.idTokenParsed.preferred_username + ". Select an Office type. </h4> ").insertBefore($('#mapid'));
                     $('#loginUrl').hide();
                     $('#mapid').show();
                 }
                 else {
-                  console('unknown state');
+                  console.log('not authenticated');
                     $('#mapid').hide();
                     $('#loginUrl').show();
                 }
             }).catch(function () {
-                console('Failed to initialize keycloak');
+                console.log('Failed to initialize keycloak');
             });
 
             var opts = {
@@ -216,7 +219,7 @@
 
      function listLocations(el,type){
 
-       var token = $.cookie("workshop-token");
+      var token = keycloak.token;
 
        if(token != null){
          clearBox("mapid");
