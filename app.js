@@ -1,8 +1,10 @@
 const express = require('express');
+const cors = require('cors');
 const { stringReplace } = require('string-replace-middleware');
 const path = require('path');
 
 const app = express();
+app.use(cors());
 
 console.log(process.env);
 
